@@ -127,6 +127,7 @@ class App extends React.Component{
                 "pubkey": this.state.depositPubKey
             },
             success: (result) => {
+              that.setState({ "loadingNFT": false})
                 var updated = []
 
                result.forEach((item) => {
@@ -134,7 +135,7 @@ class App extends React.Component{
                        url: item[1],
                        success: (result) => {
                            updated.push([item[0], result])
-                           that.setState({"depositNfts": updated, "loadingNFT": false})
+                           that.setState({"depositNfts": updated})
                        }
                    })
                })
