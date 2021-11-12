@@ -1,4 +1,5 @@
 gunicorn
-flask
+Flask
 solana
 theblockchainapi
+flask_cors
