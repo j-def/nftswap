@@ -599,4 +599,3 @@ def compare_orders():
             if user['accountid']  == userid:
                 return render_template("home.html", username=user['username'])
 
-app.run(debug=True)
