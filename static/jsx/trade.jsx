@@ -103,23 +103,30 @@ class App extends React.Component{
         if (this.state.loggedIn){
             return(
                 <div id="header">
-                    <div onClick={() => this.goHome()} className={"login-button"}>
-                         <p>Home</p>
-                     </div>
+                    <div id={"header-left"}>
+                        <div onClick={() => this.goHome()} className={"logo"}>
+                            <img src={"/static/images/logo.png"} />
+                        </div>
+                    </div>
+
+                    <div id={"header-right"}>
                     <div onClick={() => this.userLogoutToggle()} className={"login-button"}>
                         <p>Logged In</p>
                     </div>
                     {this.userLogoutForm()}
+                    </div>
                 </div>
             )
         } else{
             return(
                  <div id="header">
-                     <div onClick={() => this.goHome()} className={"login-button"}>
-                         <p>Home</p>
-                     </div>
+                      <div id={"header-left"}>
+                        <div onClick={() => this.goHome()} className={"logo"}>
+                            <img src={"/static/images/logo.png"} />
+                        </div>
+                    </div>
+
                     <div onClick={() => this.userLoginToggle()} className={"login-button"} id={"phantom-login"}>
-                        <img  src={"/static/images/phantom_wallet.png"} />
                         <p>Login</p>
                     </div>
                      {this.userLoginForm()}

@@ -67,24 +67,19 @@ class App extends React.Component{
     }
 
     userLogoutToggle = () => {
-        var newState = this.state.logoutButton
-        if (newState == false){
-            newState = true
-        } else{
-            newState = false
-        }
-        this.setState({"logoutButton": newState})
+
+        this.setState({"logoutButton": !this.state.logoutButton})
     }
 
     logout = () => {
-        window.location.href = "/logout"
+        //window.location.href = "/logout"
     }
 
     userLogoutForm = () => {
 
         if (this.state.logoutButton == true){
             return(
-                <button onClick={() => this.logout()}>Logout</button>
+                <button className={"logout"} onClick={() => this.logout()}>Logout</button>
             )
         }
 
@@ -97,25 +92,21 @@ class App extends React.Component{
     header = () => {
         if (this.state.loggedIn){
             return(
-                <div id="header">
-                     <div id={"header-left"}>
+                <div  id="header">
+                     <div onClick={() => this.goHome()} id={"header-left"}>
                          <div className={"logo"}>
                             <img src={"/static/images/logo.png"} />
                         </div>
-                        <h1>NFTySWAP</h1>
 
                     </div>
 
                      <div id={"header-right"}>
-                        <div onClick={() => this.goHome()} className={"login-button"}>
-                             <p>Home</p>
-                         </div>
-                         <div>
                               <div onClick={() => this.userLogoutToggle()} className={"login-button"}>
                                 <p>Logged In</p>
-                            </div>
-                            {this.userLogoutForm()}
-                         </div>
+
+                              </div>
+                                {this.userLogoutForm()}
+
 
                      </div>
 
@@ -125,18 +116,15 @@ class App extends React.Component{
             return(
                  <div id="header">
                      <div id={"header-left"}>
-                         <div className={"logo"}>
+                         <div onClick={() => this.goHome()} className={"logo"}>
                             <img src={"/static/images/logo.png"} />
                         </div>
-                        <h1>NFTySWAP</h1>
+
 
                     </div>
                      <div id={"header-right"}>
-                     <div onClick={() => this.goHome()} className={"login-button"}>
-                         <p>Home</p>
-                     </div>
 
-                        <div onClick={() => this.userLoginToggle()} className={"login-button"} id={"phantom-login"}>
+                        <div onClick={() => this.userLoginToggle()} className={"login-button"}>
                             <p>Login</p>
                         </div>
                          {this.userLoginForm()}

@@ -8,6 +8,7 @@ from solana.rpc.api import Client
 from theblockchainapi import TheBlockchainAPIResource, SolanaNetwork
 import random
 import string
+import datetime
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
@@ -73,6 +74,45 @@ def delete_offer(tradeOfferId, userid):
         userOffers[senderid].remove(tradeOfferId)
         userOffers[receiverid].remove(tradeOfferId)
         json.dump(userOffers, open("./usersOffers.json", "w"))
+        return "success"
+
+def save_offer(tradeOfferId, userid):
+    ownerid = userid
+
+    tradeOfferAccounts = json.load(open("./tradeOfferAccounts.json", "r"))
+    sender, receiver = tradeOfferAccounts[tradeOfferId]['sender'], tradeOfferAccounts[tradeOfferId]['receiver']
+    del tradeOfferAccounts
+
+    isMember = False
+    userData = json.load(open("./userCredentials.json", "r"))
+    for user in userData:
+        if user['accountid'] == ownerid:
+            if user['username'] == sender or user['username'] == receiver:
+                isMember = True
+                break
+    if isMember:
+        userData = json.load(open("./userCredentials.json", "r"))
+        for user in userData:
+            if user['username'] == receiver:
+                receiverid = user['accountid']
+            if user['username'] == sender:
+                senderid = user['accountid']
+        del userData
+
+
+
+        currentCompletedTrades = json.load(open("./completedTrades.json", "r"))
+        tradeOffers = json.load(open("./tradeOffers.json", "r"))
+        try:
+            currentCompletedTrades[receiverid].append({"id": tradeOfferId, "datetime": int(datetime.datetime.now().timestamp()), "inputs": tradeOffers[tradeOfferId]})
+        except:
+            currentCompletedTrades[receiverid] = [{"id": tradeOfferId, "datetime": int(datetime.datetime.now().timestamp()), "inputs": tradeOffers[tradeOfferId]}]
+        try:
+            currentCompletedTrades[senderid].append({"id": tradeOfferId, "datetime": int(datetime.datetime.now().timestamp()), "inputs": tradeOffers[tradeOfferId]})
+        except:
+            currentCompletedTrades[senderid] = [{"id": tradeOfferId, "datetime": int(datetime.datetime.now().timestamp()), "inputs": tradeOffers[tradeOfferId]}]
+        json.dump(currentCompletedTrades, open("./completedTrades.json", "w"))
+
         return "success"
 
 def sendSol(FROM_PUBKEY, TO_PUBKEY, SOLAMT):
@@ -150,6 +190,17 @@ def updateNfts(PUBLIC_KEY_STR):
     json.dump(mintToUrl, open("./mintToMetaData.json", "w"))
     json.dump(addressToMint, open("./publickeyToMint.json", "w"))
     return nftPubKeys
+
+@app.route('/trades/completed', methods=['GET'])
+def get_completed_trades():
+    session = json.load(open("./session.json", "r"))
+    ownerid = session[request.cookies.get("sessionid")]
+
+    completedTrades = json.load(open("./completedTrades.json", "r"))
+    try:
+        return jsonify(completedTrades[ownerid])
+    except:
+        return jsonify({})
 
 @app.route('/withdraw/sol', methods=['POST'])
 def withdraw_sol():
@@ -300,6 +351,7 @@ def accept_trade():
                 sendNft(sendPubkey, recPubkey, nft)
             except:
                 return "failed04"
+        save_offer(tradeOfferId, ownerid)
         delete_offer(tradeOfferId, ownerid)
         return "success"
 
@@ -463,8 +515,11 @@ def confirm_trade():
 @app.route('/trade/<string:address>', methods=['GET'])
 def trade_page(address):
     if request.method == "GET":
-        session = json.load(open("./session.json", "r"))
-        owner = session[request.cookies.get("sessionid")]
+        try:
+            session = json.load(open("./session.json", "r"))
+            owner = session[request.cookies.get("sessionid")]
+        except:
+            return render_template("trade.html")
         del session
 
         userCreds = json.load(open("./userCredentials.json", "r"))

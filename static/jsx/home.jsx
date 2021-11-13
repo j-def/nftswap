@@ -15,7 +15,9 @@ class App extends React.Component{
             "solWithdrawMenu": false,
             "withdrawSolMessage": "",
             "loadingNFT": true,
-            "loadingTrades": true}
+            "loadingTrades": true,
+            "completedTrades": [],
+            "loadingCompleted": true}
     }
 
     componentDidMount(){
@@ -26,6 +28,7 @@ class App extends React.Component{
                 that.setState({"pubKey": result})
                 that.grabPubKey()
                 that.getTrades()
+                that.updateCompletedtrades()
             }
         })
     }
@@ -72,7 +75,7 @@ class App extends React.Component{
 
         if (this.state.logoutButton == true){
             return(
-                <button onClick={() => this.logout()}>Logout</button>
+                <button onClick={() => this.logout()} className={"logout-button"}>Logout</button>
             )
         }
 
@@ -88,7 +91,7 @@ class App extends React.Component{
                          <div className={"logo"}>
                             <img src={"/static/images/logo.png"} />
                         </div>
-                        <h1>NFTySWAP</h1>
+
 
                     </div>
 
@@ -155,7 +158,7 @@ class App extends React.Component{
         if (pubKeyString != ""){
             let tokenID = new solanaWeb3.PublicKey(pubKeyString)
             connection.getBalance(tokenID).then(result => {
-                that.setState({"depositBalance": (result / 1000000000).toFixed(2)})
+                that.setState({"depositBalance": (result / 1000000000).toFixed(3)})
             })
 
         }
@@ -467,6 +470,61 @@ class App extends React.Component{
         )
     }
 
+    updateCompletedtrades = () => {
+        var that = this
+        $.ajax({
+            url: "/trades/completed",
+            success: (result) => {
+            that.setState({"completedTrades": result, "loadingCompleted": false})
+        }
+        })
+    }
+
+    displaycompletedtrades = () => {
+
+        if (this.state.loadingCompleted){
+            return(<div className="lds-ripple">
+                <div></div>
+                <div></div>
+            </div>)
+        } else{
+            return(
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>ID</td>
+                                <td>Sender</td>
+                                <td>Receiver</td>
+                                <td>Sender Mints</td>
+                                <td>Receiver Mints</td>
+                                <td>SOL</td>
+                            </tr>
+                        </thead>
+                    <tbody>
+                          {this.state.completedTrades.map((item, idx) => (
+                            <tr key={idx}>
+                                <td>{item.id}</td>
+                                 <td>{item.inputs.sender}</td>
+                                <td>{item.inputs.receiver}</td>
+                                <td>{item.inputs.senderNFTs.map((nft,indx) => (
+                                    <span key={indx}>{nft}</span>
+                                ))}</td>
+                                <td>{item.inputs.receiverNfts.map((nft,indx) => (
+                                    <span key={indx}>{nft}</span>
+                                ))}</td>
+                                <td>{item.inputs.sol}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+
+                    </table>
+                </div>
+            )
+        }
+
+    }
+
 
     render(){
         return(
@@ -475,6 +533,7 @@ class App extends React.Component{
                  <h1>{$("#user-username").val()}</h1>
                 {this.depositNFT()}
                 {this.tradeOffers()}
+                
             </div>
         )
     }

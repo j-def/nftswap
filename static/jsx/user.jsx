@@ -89,7 +89,7 @@ class App extends React.Component{
 
         if (this.state.logoutButton == true){
             return(
-                <button onClick={() => this.logout()}>Logout</button>
+                <button onClick={() => this.logout()} className={"logout-button"}>Logout</button>
             )
         }
 
@@ -101,25 +101,25 @@ class App extends React.Component{
             return(
                 <div id="header">
                     <div id={"header-left"}>
-                         <div className={"logo"}>
+                         <div onClick={() => this.toHome()} className={"logo"}>
                             <img src={"/static/images/logo.png"} />
                         </div>
-                        <h1>NFTySWAP</h1>
+
 
                     </div>
 
                     <div id={"header-right"}>
-                    </div>
-                    <div onClick={() => this.toHome()} className={"login-button"}>
-                        <p>Home</p>
-                    </div>
-                    <div onClick={() => this.toBrowse()} className={"login-button"}>
-                        <p>Browse</p>
-                    </div>
-                    <div onClick={() => this.userLogoutToggle()} className={"login-button"}>
-                        <p>Logged In</p>
-                    </div>
-                    {this.userLogoutForm()}
+
+
+                        <div onClick={() => this.toBrowse()} className={"login-button"}>
+                            <p>Browse</p>
+                        </div>
+                        <div onClick={() => this.userLogoutToggle()} className={"login-button"}>
+                            <p>Logged In</p>
+                        </div>
+                        {this.userLogoutForm()}
+                        </div>
+
 
                 </div>
             )
@@ -130,7 +130,7 @@ class App extends React.Component{
                          <div className={"logo"}>
                             <img src={"/static/images/logo.png"} />
                         </div>
-                        <h1>NFTySWAP</h1>
+
 
                     </div>
                      <div id={"header-right"}>
