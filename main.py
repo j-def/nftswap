@@ -2,6 +2,9 @@ from flask import Flask, jsonify, request, render_template, send_from_directory,
 from flask_cors import CORS
 import solana
 from spl import token
+import spl.token._layouts as layouts
+from spl.token.constants import TOKEN_PROGRAM_ID
+from solana.utils.helpers import decode_byte_string
 from spl.token import instructions
 import json
 from solana.rpc.api import Client
@@ -11,7 +14,6 @@ import string
 import datetime
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
-
 ##SET 1
 #MY_API_KEY_ID = "APQjOuExwhZhzjp"
 #MY_API_SECRET_KEY = "C0a8i4PA1y5qZhz"
@@ -34,8 +36,55 @@ BLOCKCHAIN_API_RESOURCE = TheBlockchainAPIResource(
 
 client = Client("https://free.rpcpool.com")
 
+def get_wallet_balance(pub):
+    client2 = Client(getSolanaUrl())
+    resp = client2.get_balance(solana.publickey.PublicKey(pub))
+    return resp['result']['value'] * 0.000000001
+
 def getSolanaUrl():
     return random.choice(["https://free.rpcpool.com", "https://orca.rpcpool.com", "https://api.mainnet-beta.solana.com", "https://solana-api.projectserum.com"])
+
+def update_owned(pubkey):
+    mintToUrl = json.load(open("./mintToMetaData.json", "r"))
+    addressToMint = json.load(open("./publickeyToMint.json", "r"))
+
+    nftPubKeys = []
+    PUBLIC_KEY = solana.publickey.PublicKey(pubkey)
+
+    addressToMint[pubkey] = []
+    addresseses = addressToMint[pubkey]
+
+    client2 = Client(getSolanaUrl())
+
+
+    splAccount = solana.rpc.types.TokenAccountOpts(program_id=solana.publickey.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
+    tokens = client2.get_token_accounts_by_owner(PUBLIC_KEY, splAccount)
+    tokenPubKeys = [item['pubkey'] for item in tokens['result']['value']]
+    for pubkey in tokenPubKeys:
+        data = client2.get_token_account_balance(pubkey)
+        if data['result']['value']['amount'] == '1' and data['result']['value']['decimals'] == 0:
+
+            mintKey = client2.get_account_info(pubkey, encoding="jsonParsed")
+            mintKey = mintKey['result']['value']['data']['parsed']['info']['mint']
+            nft_metadata = BLOCKCHAIN_API_RESOURCE.get_nft_metadata(
+                mint_address=mintKey,
+                network=SolanaNetwork.MAINNET_BETA
+            )
+            mintToUrl[pubkey] = nft_metadata['data']['uri']
+            if pubkey not in addresseses:
+                addresseses.append(pubkey)
+            nftPubKeys.append((pubkey, nft_metadata['data']['uri']))
+    json.dump(mintToUrl, open("./mintToMetaData.json", "w"))
+    json.dump(addressToMint, open("./publickeyToMint.json", "w"))
+    return nftPubKeys
+layouts.ACCOUNT_LAYOUT
+def is_mint_verified(mint):
+    client2 = Client(getSolanaUrl())
+    resp = client2.get_account_info(solana.publickey.PublicKey(mint))
+    account_data = layouts.MINT_LAYOUT.parse(decode_byte_string(resp["result"]["value"]["data"][0]))
+    print(account_data)
+    print(solana.publickey.PublicKey(account_data['freeze_authority']))
+is_mint_verified("62vhxL3gPxPatwnkfeVFqx8pn5CUC9wed9QUwCz1Jv4F")
 
 def delete_offer(tradeOfferId, userid):
     ownerid = userid
@@ -323,6 +372,7 @@ def accept_trade():
         traderOfferSpecific = tradeOfferData[tradeOfferId]
         del tradeOfferData
 
+        solTransferAmount = float(traderOfferSpecific['sol'])
         recPubkey = traderOfferSpecific['receiver']
         receiverNfts = traderOfferSpecific['receiverNfts']
         sendPubkey = traderOfferSpecific['sender']
@@ -340,6 +390,21 @@ def accept_trade():
         for nft in senderNfts:
             if nft not in currentSenderNfts:
                 return "failed02"
+
+        if len(receiverNfts) > 0:
+            if get_wallet_balance(recPubkey) < 0.00001:
+                return "failed05"
+
+        if len(senderNfts) > 0:
+            if get_wallet_balance(sendPubkey) < (0.00001 + solTransferAmount):
+                return "failed06"
+
+        if solTransferAmount > 0:
+            try:
+                sendSol(sendPubkey, recPubkey, solTransferAmount)
+            except:
+                return "failed07"
+
 
         for nft in receiverNfts:
             try:
@@ -429,6 +494,7 @@ def get_my_trades():
             "receiverUser": offerAccounts[offer]["receiver"],
             "senderNfts": {mint: mintMetadata[mint] for mint in offerData[offer]['senderNfts']},
             "receiverNfts": {mint: mintMetadata[mint] for mint in offerData[offer]['receiverNfts']},
+            "sol": offerData[offer]['sol'],
             "role": memberRole
         })
 
@@ -446,7 +512,7 @@ def confirm_trade():
             if owner == trader:
                 return "failed00"
             traderNfts =  request.form['traderNfts'].split(";")
-            solAmt = str(request.form['addedSol'])
+            solAmt = float(request.form['addedSol'])
             while "" in ownerNfts:
                 ownerNfts.remove("")
             while "" in traderNfts:
@@ -474,6 +540,8 @@ def confirm_trade():
         del accounts
 
         keyMints = json.load(open("./publickeyToMint.json", "r"))
+        if solAmt > get_wallet_balance(ownerAddress):
+            return "failed05"
 
         for nft in ownerNfts:
             if nft not in keyMints[ownerAddress]:
@@ -640,6 +708,17 @@ def get_user_data():
         session = json.load(open("./session.json", "r"))
         username = session[request.cookies.get("sessionid")]
         return username
+
+@app.route('/user/pub', methods=['GET'])
+def get_user_pub():
+    if request.method == "GET":
+        if request.cookies.get('sessionid') == None:
+            return "false"
+        session = json.load(open("./session.json", "r"))
+        username = session[request.cookies.get("sessionid")]
+        accounts = json.load(open("./accounts.json", "r"))
+
+        return accounts[username]
 
 @app.route('/', methods=['GET'])
 def compare_orders():

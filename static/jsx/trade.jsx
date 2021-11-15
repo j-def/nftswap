@@ -12,7 +12,9 @@ class App extends React.Component{
             "loginForm": false,
             "ownerSelected": [],
             "traderSelected": [],
-            "offerMessage": ""}
+            "offerMessage": "",
+            "pubkeyBalance": "0",
+            "selectedMetadata": ""}
     }
 
     componentDidMount(){
@@ -21,11 +23,12 @@ class App extends React.Component{
         this.traderItems(pageaddress)
         var that = this
         $.ajax({
-            url: "/user/data",
+            url: "/user/pub",
             success: (result) => {
                 if (result != "false"){
                     that.setState({"pubKey": result, "loggedIn": true})
                     that.ownerItems()
+                    that.pubkeywalletValue()
                 }
             }
         })
@@ -213,14 +216,18 @@ class App extends React.Component{
 
     sendOfferFinal = () => {
         var that = this
-        $.ajax({
+
+        if ($("#sol-input").val() >= parseFloat(this.state.pubkeyBalance) - 0.001){
+            this.setState({"offerMessage": "Insufficient funds."})
+        } else {
+            $.ajax({
             url: "/trade/confirm",
             method: "post",
             data: {
                 "trader": this.state.pageAddr,
                 "traderNfts": this.state.traderSelected.join(";"),
                 "ownerNfts": this.state.ownerSelected.join(";"),
-                "addedSol": "0"
+                "addedSol": $("#sol-input").val()
             },
             success: (result) => {
                 console.log(result)
@@ -231,6 +238,8 @@ class App extends React.Component{
                 }
             }
         })
+        }
+
     }
     cancelOfferFinal = () => {
         this.setState({"offerMessage": ""})
@@ -238,7 +247,7 @@ class App extends React.Component{
 
     tradeOfferSend = () => {
         if (this.state.offerMessage != ""){
-            if (this.state.offerMessage == "No items in trade" || this.state.offerMessage == "Offer sent!" || this.state.offerMessage == "Error Sending Offer"){
+            if (this.state.offerMessage == "No items in trade" || this.state.offerMessage == "Offer sent!" || this.state.offerMessage == "Error Sending Offer" || this.state.offerMessage == "Insufficient funds." ){
                 return(
                  <div>
                      <p>{this.state.offerMessage}</p>
@@ -261,6 +270,39 @@ class App extends React.Component{
 
     }
 
+    pubkeywalletValue = () => {
+        var that = this
+        var connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'), 'confirmed');
+        var pubKeyString = this.state.pubKey.toString()
+        if (pubKeyString != ""){
+            let tokenID = new solanaWeb3.PublicKey(pubKeyString)
+            connection.getBalance(tokenID).then(result => {
+                that.setState({"pubkeyBalance": (result / 1000000000).toFixed(3)})
+            })
+
+        }
+
+    }
+
+    addSol = () => {
+        var noNegativeValues = (e) => {
+            if (e.target.value < 0){
+                $("#sol-input").val(0)
+            } else if (e.target.value.length == 0){
+                $("#sol-input").val(0)
+            }
+
+        }
+
+        return(
+            <div className={"add-sol"}>
+                <input id={"sol-input"} onChange={(e) => noNegativeValues(e)} defaultValue={0} type={"number"} />
+                <p>Of Maximum {this.state.pubkeyBalance}</p>
+            </div>
+            )
+
+    }
+
     tradeMenu = () => {
         var traderIsSelected = (mint) => {
             if (this.state.traderSelected.includes(mint)){
@@ -273,24 +315,40 @@ class App extends React.Component{
             }
         }
 
+        var empty1 = ""
+        if (this.state.ownerNfts.length == 0){
+            empty1 = <h3>No Items</h3>
+        }
+
+        var empty2 = ""
+        if (this.state.traderNfts.length == 0){
+            empty2 = <h3>No Items</h3>
+        }
+
         if (this.state.loggedIn){
             return(
                 <div className={"trading-arena"}>
                     <h2>Your Items</h2>
                      <div className={"nft-display"}>
+                         {empty1}
                          {this.state.ownerNfts.map((item, idx) => (
                              <div key={idx} onClick={() => this.ownerSelectNft(item[0])} className={"nft-case "+ownerIsSelected(item[0])}>
                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
+                                <button onClick={() => this.openmetadata(item[0])} className={"metadata"}>View Metadata</button>
                              </div>
                          ))}
                      </div>
+                    <h3>Add SOL</h3>
+                    {this.addSol()}
                     <h2>{this.state.pageAddr}'s Items</h2>
                     <div className={"nft-display"}>
+                        {empty2}
                          {this.state.traderNfts.map((item, idx) => (
                              <div key={idx}  onClick={() => this.traderSelectNft(item[0])} className={"nft-case "+ traderIsSelected(item[0])}>
                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
+                                <button onClick={() => this.openmetadata(item[0])} className={"metadata"}>View Metadata</button>
                              </div>
                          ))}
                      </div>
@@ -308,6 +366,56 @@ class App extends React.Component{
 
 
     }
+     openmetadata = (metamint) => {
+        this.setState({"selectedMetadata": metamint})
+    }
+
+    renderMetadata = () => {
+        var close = () => {
+             this.setState({"selectedMetadata": ""})
+        }
+
+        if (this.state.selectedMetadata.length > 0){
+
+            var metadata = ""
+            this.state.traderNfts.forEach((nft) => {
+                if (nft[0] == this.state.selectedMetadata ){
+                    metadata = nft[1]
+                }
+            })
+            this.state.ownerNfts.forEach((nft) => {
+                if (nft[0] == this.state.selectedMetadata ){
+                    metadata = nft[1]
+                }
+            })
+
+            if (metadata == ""){
+                this.setState({"selectedMetadata": ""})
+            }
+
+            return(
+                <div className={"nft-metadata-case"}>
+                    <button onClick={() => close()}>Close</button>
+                    <h2>{metadata.name}</h2>
+                    <p>{metadata.description}</p>
+                    <img src={metadata.image} />
+                        <h3>Attributes</h3>
+
+                    <table>
+                        <tbody>
+                        {metadata.attributes.map((attribute, idx) => (
+                            <tr>
+                                <td>{attribute.trait_type}</td>
+                                <td>{attribute.value}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
+
+    }
 
 
     render(){
@@ -316,6 +424,7 @@ class App extends React.Component{
             <div>
                 {this.header()}
                 {this.tradeMenu()}
+                {this.renderMetadata()}
             </div>
         )
     }

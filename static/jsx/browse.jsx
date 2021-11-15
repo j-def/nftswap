@@ -9,7 +9,9 @@ class App extends React.Component{
             "loginForm": false,
             "availableUsers": [],
             "metadata": {},
-            "users": []
+            "users": [],
+            "selectedMetadata": "",
+            "selectedURI": ""
         }
     }
 
@@ -167,18 +169,58 @@ class App extends React.Component{
         window.location.href = "/user/"+user
     }
 
+    openmetadata = (metamint, metauri) => {
+        this.setState({"selectedMetadata": metamint, "selectedURI": metauri})
+    }
+
+    renderMetadata = () => {
+        var close = () => {
+             this.setState({"selectedMetadata": "", "selectedURI": ""})
+        }
+
+        if (this.state.selectedMetadata.length > 0){
+
+            var metadata = this.state.metadata[this.state.selectedURI]
+
+            return(
+                <div className={"nft-metadata-case"}>
+                    <button onClick={() => close()}>Close</button>
+                    <h2>{metadata.name}</h2>
+                    <p>{metadata.description}</p>
+                    <img src={metadata.image} />
+                        <h3>Attributes</h3>
+
+                    <table>
+                        <tbody>
+                        {metadata.attributes.map((attribute, idx) => (
+                            <tr>
+                                <td>{attribute.trait_type}</td>
+                                <td>{attribute.value}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
+
+    }
+
     browseMenu = () => {
         return(
             <div>
                 <h2>Available Items</h2>
                 {this.state.availableUsers.map((item, idx) => (
                     <div key={idx} className={"user-row"}>
-                        <h3>{Object.keys(item)[0]}'s NFTs</h3>
-                        <div className={"nft-display"} onClick={() => this.toUserPage(Object.keys(item)[0])}>
+                    <div onClick={() => this.toUserPage(Object.keys(item)[0])} style={{"marginBottom": "20px","cursor": "pointer","width": "fit-content", "marginLeft": "auto", "marginRight": "auto", "border": "solid 1px white", "padding": "5px 20px", "borderRadius": "5px"}}>
+
+                        <h3 >{Object.keys(item)[0]}'s NFTs</h3>
+                    </div>
+                        <div className={"nft-display"}>
                              {this.state.availableUsers[0][Object.keys(this.state.availableUsers[0])].map((nft, idnx) => {
                                  this.nftCaseItem(nft)
                                  return(
-                                     <div className={"nft-case"} key={idnx}>
+                                     <div onClick={() => this.openmetadata(Object.keys(nft)[0], nft[Object.keys(nft)[0]])} className={"nft-case"} key={idnx}>
                                         <p>{this.state.metadata[nft[Object.keys(nft)[0]]].name}</p>
                                          <img src={this.state.metadata[nft[Object.keys(nft)[0]]].image} />
                                      </div>
@@ -235,6 +277,7 @@ class App extends React.Component{
                 {this.header()}
                 {this.searchUsers()}
                 {this.browseMenu()}
+                {this.renderMetadata()}
             </div>
         )
     }

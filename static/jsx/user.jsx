@@ -3,7 +3,7 @@ class App extends React.Component{
     constructor(props) {
         super(props);
 
-        this.state = {"pubKey": "", "nfts": [], "loggedIn": false, "logoutButton": false, "loginForm": false, "pageAddr": ""}
+        this.state = {"pubKey": "", "nfts": [], "loggedIn": false, "logoutButton": false, "loginForm": false, "pageAddr": "", "selectedMetadata": ""}
     }
 
     componentDidMount(){
@@ -193,7 +193,7 @@ class App extends React.Component{
                 {tradeButton()}
                  <div className={"nft-display"}>
                      {this.state.nfts.map((item, idx) => (
-                         <div key={idx} className={"nft-case"}>
+                         <div onClick={() => this.openmetadata(item[0])} key={idx} className={"nft-case"}>
                             <p>{item[1].name}</p>
                             <img src={item[1].image} />
                          </div>
@@ -204,12 +204,59 @@ class App extends React.Component{
         )
     }
 
+     openmetadata = (metamint) => {
+        this.setState({"selectedMetadata": metamint})
+    }
+
+    renderMetadata = () => {
+        var close = () => {
+             this.setState({"selectedMetadata": ""})
+        }
+
+        if (this.state.selectedMetadata.length > 0){
+
+            var metadata = ""
+            this.state.nfts.forEach((nft) => {
+                if (nft[0] == this.state.selectedMetadata ){
+                    metadata = nft[1]
+                }
+            })
+
+            if (metadata == ""){
+                this.setState({"selectedMetadata": ""})
+            }
+
+            return(
+                <div className={"nft-metadata-case"}>
+                    <button onClick={() => close()}>Close</button>
+                    <h2>{metadata.name}</h2>
+                    <p>{metadata.description}</p>
+                    <img src={metadata.image} />
+                        <h3>Attributes</h3>
+
+                    <table>
+                        <tbody>
+                        {metadata.attributes.map((attribute, idx) => (
+                            <tr>
+                                <td>{attribute.trait_type}</td>
+                                <td>{attribute.value}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
+
+    }
+
     render(){
 
         return(
             <div>
                 {this.header()}
                 {this.displayNfts()}
+                {this.renderMetadata()}
             </div>
         )
     }

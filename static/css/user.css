@@ -65,6 +65,7 @@ body,html{
     gap: 10px;
 }
 .nft-case{
+    cursor: pointer;
     text-align: center;
     border: solid 1px white;
     border-radius: 5px;
@@ -148,3 +149,42 @@ body,html{
     color: white;
 }
 
+.nft-metadata-case{
+    position: absolute;
+    border: solid 1px white;
+    width: 500px;
+    background-color: #2F3136;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 250px;
+    border-radius: 5px;
+    padding: 10px;
+}
+.nft-metadata-case table{
+    margin-left: auto;
+    margin-right: auto;
+
+}
+.nft-metadata-case td{
+    padding: 5px;
+}
+.nft-metadata-case img{
+    margin-left: 50%;
+    transform: translateX(-50%);
+    width: 128px;
+}
+.nft-metadata-case button{
+    margin-top: 10px;
+    background-color: transparent;
+    border: solid 1px white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: 0.25s;
+    color: white;
+}
+.nft-metadata-case button:hover{
+    border-color: transparent;
+    background-color: #1f76e0;
+    color: white;
+}

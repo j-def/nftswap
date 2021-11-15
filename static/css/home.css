@@ -72,6 +72,7 @@ body,html{
     border-radius: 5px;
     width: 150px;
     overflow: hidden;
+    cursor: pointer;
 }
 .nft-case img{
     position: relative;
@@ -178,4 +179,54 @@ input[type=number]{
 .logout-button{
     margin-right: 10px;
     border: none;
+}
+table{
+
+}
+.centerized{
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+.centerized-table{
+    width: 100%;
+    margin-bottom: 20px;
+}
+.centerized-table table{
+    margin-left: auto;
+    margin-right: auto;
+}
+.centerized-table thead{
+    font-size: 1.1em;
+    font-weight: bold;
+}
+.centerized-table table td{
+    padding: 5px 10px;
+}
+.nft-metadata-case{
+    position: absolute;
+    border: solid 1px white;
+    width: 500px;
+    background-color: #2F3136;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 250px;
+    border-radius: 5px;
+    padding: 10px;
+}
+.nft-metadata-case table{
+    margin-left: auto;
+    margin-right: auto;
+
+}
+.nft-metadata-case td{
+    padding: 5px;
+}
+.nft-metadata-case img{
+    margin-left: 50%;
+    transform: translateX(-50%);
+    width: 128px;
+}
+.nft-metadata-case button{
+
 }

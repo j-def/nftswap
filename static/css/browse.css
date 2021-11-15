@@ -73,12 +73,37 @@ body,html{
     border-radius: 5px;
     width: 150px;
     overflow: hidden;
+    cursor: pointer;
 }
 .nft-case img{
     position: relative;
     bottom: -3px;
     margin-left: 0;
     width: 100%;
+}
+.nft-metadata-case{
+    position: absolute;
+    border: solid 1px white;
+    width: 500px;
+    background-color: #2F3136;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 250px;
+    border-radius: 5px;
+    padding: 10px;
+}
+.nft-metadata-case table{
+    margin-left: auto;
+    margin-right: auto;
+
+}
+.nft-metadata-case td{
+    padding: 5px;
+}
+.nft-metadata-case img{
+    margin-left: 50%;
+    transform: translateX(-50%);
+    width: 128px;
 }
 .trade-button{
     margin-top: 25px;
@@ -123,6 +148,8 @@ p{
     width: 80%;
     margin-left: 10%;
     margin-right: 10%;
+}
+.user-row h3{
     cursor: pointer;
 }
 .link-button{
@@ -211,4 +238,7 @@ button:hover{
 }
 .logout{
 margin-right: 10px;
+}
+.nft-metadata-case button{
+    border: solid 1px white;
 }

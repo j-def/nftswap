@@ -17,7 +17,10 @@ class App extends React.Component{
             "loadingNFT": true,
             "loadingTrades": true,
             "completedTrades": [],
-            "loadingCompleted": true}
+            "loadingCompleted": true,
+            "tableHovering": [],
+            "tableHoveringRow": "",
+            "selectedMetadata": ""}
     }
 
     componentDidMount(){
@@ -284,7 +287,7 @@ class App extends React.Component{
                     <div className={"nft-display"}>
                         {this.nftLoading()}
                         {this.state.depositNfts.map((item, idx) => (
-                            <div className={"nft-case"} key={idx}>
+                            <div onClick={() => this.openmetadata(item[0])} className={"nft-case"} key={idx}>
                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
                                 <button onClick={() => this.toggleWithdrawMenu(item[0])}>Withdraw</button>
@@ -408,6 +411,7 @@ class App extends React.Component{
                     <div className={"trade"} key={idx}>
                         <h4>Offer to {offer.receiverUser}</h4>
                         <h5>Your Items</h5>
+                        <p>{offer.sol} SOL</p>
                          <div className={"nft-display"}>
                              {Object.keys(offer.senderNfts).map((nft) => {
                                  if (Object.keys(this.state.nftData).includes(nft)) {
@@ -451,6 +455,7 @@ class App extends React.Component{
                              })}
                          </div>
                         <h5>Their Items</h5>
+                        <p>{offer.sol} SOL</p>
                          <div className={"nft-display"}>
                              {Object.keys(offer.senderNfts).map((nft) => {
                                   if (Object.keys(this.state.nftData).includes(nft)) {
@@ -480,16 +485,43 @@ class App extends React.Component{
         })
     }
 
-    displaycompletedtrades = () => {
+    displayPubKey = (pubkey,idx) => {
+        var hovering = ""
+        if (this.state.tableHovering.includes(pubkey) && this.state.tableHoveringRow == idx){
+             hovering = <p style={{"position": "absolute", "backgroundColor": "#2F3136", "padding": "10px"}}>{pubkey}</p>
+        }
 
+        var editList = (pubkey, idnx) => {
+            var newlist = this.state.tableHovering
+            if (newlist.includes(pubkey)){
+                newlist.splice(newlist.indexOf(pubkey), 1)
+            } else {
+                newlist.push(pubkey)
+            }
+
+            this.setState({"tableHovering": newlist, "tableHoveringRow": idnx})
+        }
+
+        return(
+            <div key={idx}>
+                <p onMouseEnter={() => editList(pubkey,idx)} onMouseLeave={() => editList(pubkey,"")}>{pubkey.substring(0, 8)}...</p>
+                {hovering}
+            </div>
+        )
+    }
+
+    displaycompletedtrades = () => {
         if (this.state.loadingCompleted){
-            return(<div className="lds-ripple">
+            return(<div className={"centerized"}>
+                <div className="lds-ripple">
                 <div></div>
                 <div></div>
+            </div>
             </div>)
         } else{
             return(
-                <div>
+                <div className={"centerized-table"}>
+                    <h2>Completed Trades</h2>
                     <table>
                         <thead>
                             <tr>
@@ -505,13 +537,13 @@ class App extends React.Component{
                           {this.state.completedTrades.map((item, idx) => (
                             <tr key={idx}>
                                 <td>{item.id}</td>
-                                 <td>{item.inputs.sender}</td>
-                                <td>{item.inputs.receiver}</td>
-                                <td>{item.inputs.senderNFTs.map((nft,indx) => (
-                                    <span key={indx}>{nft}</span>
+                                 <td>{this.displayPubKey(item.inputs.sender, idx)}</td>
+                                <td>{this.displayPubKey(item.inputs.receiver, idx)}</td>
+                                <td>{item.inputs.senderNfts.map((nft, indx) => (
+                                  this.displayPubKey(nft, indx+";"+idx)
                                 ))}</td>
-                                <td>{item.inputs.receiverNfts.map((nft,indx) => (
-                                    <span key={indx}>{nft}</span>
+                                <td>{item.inputs.receiverNfts.map((nft, indx) => (
+                                   this.displayPubKey(nft, indx+";"+idx)
                                 ))}</td>
                                 <td>{item.inputs.sol}</td>
                             </tr>
@@ -525,6 +557,59 @@ class App extends React.Component{
 
     }
 
+        footer = () => {
+        return(
+            <div>
+                <h4>Developed by CheddaMane#1720</h4>
+            </div>
+        )
+    }
+
+    openmetadata = (metamint) => {
+        this.setState({"selectedMetadata": metamint})
+    }
+
+    renderMetadata = () => {
+        var close = () => {
+             this.setState({"selectedMetadata": ""})
+        }
+
+        if (this.state.selectedMetadata.length > 0){
+
+            var metadata = ""
+            this.state.depositNfts.forEach((nft) => {
+                if (nft[0] == this.state.selectedMetadata ){
+                    metadata = nft[1]
+                }
+            })
+
+            if (metadata == ""){
+                this.setState({"selectedMetadata": ""})
+            }
+
+            return(
+                <div className={"nft-metadata-case"}>
+                    <button onClick={() => close()}>Close</button>
+                    <h2>{metadata.name}</h2>
+                    <p>{metadata.description}</p>
+                    <img src={metadata.image} />
+                        <h3>Attributes</h3>
+
+                    <table>
+                        <tbody>
+                        {metadata.attributes.map((attribute, idx) => (
+                            <tr>
+                                <td>{attribute.trait_type}</td>
+                                <td>{attribute.value}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
+
+    }
 
     render(){
         return(
@@ -533,10 +618,14 @@ class App extends React.Component{
                  <h1>{$("#user-username").val()}</h1>
                 {this.depositNFT()}
                 {this.tradeOffers()}
-                
+                {this.displaycompletedtrades()}
+                {this.footer()}
+                {this.renderMetadata()}
             </div>
         )
     }
 }
+
+
 
 ReactDOM.render(<App />, document.getElementById("body"))
