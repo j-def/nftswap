@@ -56,6 +56,8 @@ def update_owned(pubkey):
 
     client2 = Client(getSolanaUrl())
 
+    verifiedCollections = json.load(open("./verifiedCollections.json", "r"))
+    verifiedNfts = json.load(open("./verifiedNfts.json", "r"))
 
     splAccount = solana.rpc.types.TokenAccountOpts(program_id=solana.publickey.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
     tokens = client2.get_token_accounts_by_owner(PUBLIC_KEY, splAccount)
@@ -70,21 +72,20 @@ def update_owned(pubkey):
                 mint_address=mintKey,
                 network=SolanaNetwork.MAINNET_BETA
             )
+            if nft_metadata['update_authority'] in verifiedCollections.keys():
+                print(mintKey + ": "+"Verified")
+                verifiedNfts[mintKey] = nft_metadata['update_authority']
+            else:
+                print(mintKey + ": "+"Unverified")
             mintToUrl[pubkey] = nft_metadata['data']['uri']
             if pubkey not in addresseses:
                 addresseses.append(pubkey)
             nftPubKeys.append((pubkey, nft_metadata['data']['uri']))
+    json.dump(verifiedNfts, open("./verifiedNfts.json", "w"))
     json.dump(mintToUrl, open("./mintToMetaData.json", "w"))
     json.dump(addressToMint, open("./publickeyToMint.json", "w"))
     return nftPubKeys
-layouts.ACCOUNT_LAYOUT
-def is_mint_verified(mint):
-    client2 = Client(getSolanaUrl())
-    resp = client2.get_account_info(solana.publickey.PublicKey(mint))
-    account_data = layouts.MINT_LAYOUT.parse(decode_byte_string(resp["result"]["value"]["data"][0]))
-    print(account_data)
-    print(solana.publickey.PublicKey(account_data['freeze_authority']))
-is_mint_verified("62vhxL3gPxPatwnkfeVFqx8pn5CUC9wed9QUwCz1Jv4F")
+
 
 def delete_offer(tradeOfferId, userid):
     ownerid = userid
@@ -239,6 +240,10 @@ def updateNfts(PUBLIC_KEY_STR):
     json.dump(mintToUrl, open("./mintToMetaData.json", "w"))
     json.dump(addressToMint, open("./publickeyToMint.json", "w"))
     return nftPubKeys
+
+@app.route('/check/verified', methods=['GET'])
+def get_verified_pubkeys():
+    return jsonify({})
 
 @app.route('/trades/completed', methods=['GET'])
 def get_completed_trades():
@@ -663,6 +668,8 @@ def get_owned_nft():
 
         client2  = Client(getSolanaUrl())
 
+        verifiedCollections = json.load(open("./verifiedCollections.json", "r"))
+        verifiedNfts = json.load(open("./verifiedNfts.json", "r"))
 
         splAccount = solana.rpc.types.TokenAccountOpts(
             program_id=solana.publickey.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
@@ -673,14 +680,24 @@ def get_owned_nft():
             if data['result']['value']['amount'] == '1' and data['result']['value']['decimals'] == 0:
 
                 mintKey = client2.get_account_info(pubkey, encoding="jsonParsed")['result']['value']['data']['parsed']['info']['mint']
+
                 nft_metadata = BLOCKCHAIN_API_RESOURCE.get_nft_metadata(
                     mint_address=mintKey,
                     network=SolanaNetwork.MAINNET_BETA
                 )
+                if nft_metadata['update_authority'] in verifiedCollections.keys():
+                    verified = "Verified"
+                    verifiedB = verifiedCollections[nft_metadata['update_authority']]['name']
+                    print(verifiedB)
+                    verifiedNfts[mintKey] = nft_metadata['update_authority']
+                else:
+                    verified = "Unverified"
+                    verifiedB = ""
                 mintToUrl[pubkey] = nft_metadata['data']['uri']
                 if pubkey not in addresseses:
                     addresseses.append(pubkey)
-                nftPubKeys.append((pubkey, nft_metadata['data']['uri']))
+                nftPubKeys.append((pubkey, nft_metadata['data']['uri'], verified, verifiedB))
+        json.dump(verifiedNfts, open("./verifiedNfts.json", "w"))
         json.dump(mintToUrl, open("./mintToMetaData.json", "w"))
         json.dump(addressToMint, open("./publickeyToMint.json", "w"))
         return jsonify(nftPubKeys)

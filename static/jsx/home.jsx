@@ -140,7 +140,7 @@ class App extends React.Component{
                    $.ajax({
                        url: item[1],
                        success: (result) => {
-                           updated.push([item[0], result])
+                           updated.push([item[0], result, item[2], item[3]])
                            that.setState({"depositNfts": updated})
                        }
                    })
@@ -288,6 +288,7 @@ class App extends React.Component{
                         {this.nftLoading()}
                         {this.state.depositNfts.map((item, idx) => (
                             <div onClick={() => this.openmetadata(item[0])} className={"nft-case"} key={idx}>
+                                <h3>{item[2]}</h3>
                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
                                 <button onClick={() => this.toggleWithdrawMenu(item[0])}>Withdraw</button>
@@ -577,9 +578,15 @@ class App extends React.Component{
         if (this.state.selectedMetadata.length > 0){
 
             var metadata = ""
+            var verified = ""
+            var verifiedB = ""
             this.state.depositNfts.forEach((nft) => {
                 if (nft[0] == this.state.selectedMetadata ){
                     metadata = nft[1]
+                    verified = nft[2]
+                    if (verified == "Verified"){
+                        verifiedB = nft[3]
+                    }
                 }
             })
 
@@ -591,6 +598,7 @@ class App extends React.Component{
                 <div className={"nft-metadata-case"}>
                     <button onClick={() => close()}>Close</button>
                     <h2>{metadata.name}</h2>
+                    <h3>{verified} {verifiedB}</h3>
                     <p>{metadata.description}</p>
                     <img src={metadata.image} />
                         <h3>Attributes</h3>
