@@ -199,6 +199,7 @@ p{
 .user-login_box button{
     margin-left: 50%;
     transform: translateX(-50%);
+    color: black;
 }
 .user-login_box input{
     margin: 0px;

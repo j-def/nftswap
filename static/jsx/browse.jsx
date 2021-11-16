@@ -11,7 +11,8 @@ class App extends React.Component{
             "metadata": {},
             "users": [],
             "selectedMetadata": "",
-            "selectedURI": ""
+            "selectedURI": "",
+            "mintVerification": []
         }
     }
 
@@ -74,7 +75,7 @@ class App extends React.Component{
     }
 
     logout = () => {
-        //window.location.href = "/logout"
+        window.location.href = "/logout"
     }
 
     userLogoutForm = () => {
@@ -142,13 +143,12 @@ class App extends React.Component{
         $.ajax({
             url: "/browse/selections",
             success: (result) => {
-                that.setState({"availableUsers": result})
+                that.setState({"availableUsers": result.usermints, "mintVerification": result.verification})
             }
         })
     }
 
     nftCaseItem = (nft) => {
-        //console.log(nft)
         var that = this
         let metadatauri = nft[Object.keys(nft)[0]]
         if (!Object.keys(this.state.metadata).includes(metadatauri)){
@@ -157,7 +157,6 @@ class App extends React.Component{
             url: metadatauri,
             success: (metadata) => {
                 let currentMetadata = that.state.metadata
-                console.log(metadata)
                 currentMetadata[metadatauri] = metadata
                 that.setState({"metadata": currentMetadata})
             }
@@ -174,18 +173,26 @@ class App extends React.Component{
     }
 
     renderMetadata = () => {
+
+
         var close = () => {
              this.setState({"selectedMetadata": "", "selectedURI": ""})
         }
 
         if (this.state.selectedMetadata.length > 0){
 
+            var verified = ""
+            var verifiedB = ""
+            var tempMeta = this.state.mintVerification[this.state.selectedMetadata]
+            verified = tempMeta[0]
+            verifiedB= tempMeta[1]
             var metadata = this.state.metadata[this.state.selectedURI]
 
             return(
                 <div className={"nft-metadata-case"}>
                     <button onClick={() => close()}>Close</button>
                     <h2>{metadata.name}</h2>
+                    <h3>{verified} {verifiedB}</h3>
                     <p>{metadata.description}</p>
                     <img src={metadata.image} />
                         <h3>Attributes</h3>
@@ -206,6 +213,10 @@ class App extends React.Component{
 
     }
 
+    verifiedStatusText = (mint) => {
+        return(<p>{this.state.mintVerification[mint][0]}</p>)
+    }
+
     browseMenu = () => {
         return(
             <div>
@@ -221,7 +232,8 @@ class App extends React.Component{
                                  this.nftCaseItem(nft)
                                  return(
                                      <div onClick={() => this.openmetadata(Object.keys(nft)[0], nft[Object.keys(nft)[0]])} className={"nft-case"} key={idnx}>
-                                        <p>{this.state.metadata[nft[Object.keys(nft)[0]]].name}</p>
+                                         {this.verifiedStatusText(Object.keys(nft)[0])}
+                                         <p>{this.state.metadata[nft[Object.keys(nft)[0]]].name}</p>
                                          <img src={this.state.metadata[nft[Object.keys(nft)[0]]].image} />
                                      </div>
                                      )

@@ -174,6 +174,7 @@ class App extends React.Component{
     }
 
     toggleWithdrawMenu = (mint) => {
+
         let currentMenuList = this.state.withdrawMenuList
         if (currentMenuList.includes(mint)){
             currentMenuList.splice(currentMenuList.indexOf(mint), 1)
@@ -287,10 +288,12 @@ class App extends React.Component{
                     <div className={"nft-display"}>
                         {this.nftLoading()}
                         {this.state.depositNfts.map((item, idx) => (
-                            <div onClick={() => this.openmetadata(item[0])} className={"nft-case"} key={idx}>
+                            <div  className={"nft-case"} key={idx}>
+                                <div onClick={() => this.openmetadata(item[0])}>
                                 <h3>{item[2]}</h3>
                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
+                                </div>
                                 <button onClick={() => this.toggleWithdrawMenu(item[0])}>Withdraw</button>
                                 {this.withdrawMenu(item[0])}
                                 <p>{this.withdrawMessage(item[0])}</p>
@@ -414,9 +417,9 @@ class App extends React.Component{
                         <h5>Your Items</h5>
                         <p>{offer.sol} SOL</p>
                          <div className={"nft-display"}>
-                             {Object.keys(offer.senderNfts).map((nft) => {
+                             {Object.keys(offer.senderNfts).map((nft,idx) => {
                                  if (Object.keys(this.state.nftData).includes(nft)) {
-                                     return (<div className={"nft-case"}>
+                                     return (<div key={idx} className={"nft-case"}>
                                          <p>{this.state.nftData[nft].name}</p>
                                          <img src={this.state.nftData[nft].image}/>
                                      </div>)
@@ -425,9 +428,9 @@ class App extends React.Component{
                          </div>
                         <h5>Your Items</h5>
                         <div className={"nft-display"}>
-                             {Object.keys(offer.receiverNfts).map((nft) => {
+                             {Object.keys(offer.receiverNfts).map((nft, idx) => {
                                  if (Object.keys(this.state.nftData).includes(nft)){
-                                      return(<div className={"nft-case"}>
+                                      return(<div key={idx} className={"nft-case"}>
                                              <p>{this.state.nftData[nft].name}</p>
                                              <img src={this.state.nftData[nft].image}/>
                                          </div>)
@@ -445,10 +448,10 @@ class App extends React.Component{
                         <h4>Offer from {offer.senderUser}</h4>
                         <h5>Your Items</h5>
                          <div className={"nft-display"}>
-                             {Object.keys(offer.receiverNfts).map((nft) => {
+                             {Object.keys(offer.receiverNfts).map((nft, idx) => {
                                   if (Object.keys(this.state.nftData).includes(nft)) {
                                       return (
-                                          <div className={"nft-case"}>
+                                          <div key={idx} className={"nft-case"}>
                                               <p>{this.state.nftData[nft].name}</p>
                                               <img src={this.state.nftData[nft].image}/>
                                           </div>)
@@ -458,9 +461,9 @@ class App extends React.Component{
                         <h5>Their Items</h5>
                         <p>{offer.sol} SOL</p>
                          <div className={"nft-display"}>
-                             {Object.keys(offer.senderNfts).map((nft) => {
+                             {Object.keys(offer.senderNfts).map((nft,idx) => {
                                   if (Object.keys(this.state.nftData).includes(nft)) {
-                                      return (<div className={"nft-case"}>
+                                      return (<div key={idx} className={"nft-case"}>
                                           <p>{this.state.nftData[nft].name}</p>
                                           <img src={this.state.nftData[nft].image}/>
                                       </div>)
@@ -606,7 +609,7 @@ class App extends React.Component{
                     <table>
                         <tbody>
                         {metadata.attributes.map((attribute, idx) => (
-                            <tr>
+                            <tr key={idx}>
                                 <td>{attribute.trait_type}</td>
                                 <td>{attribute.value}</td>
                             </tr>

@@ -204,7 +204,7 @@ class App extends React.Component{
         return(
             <div>
                 <div className={"welcome-cover"}>
-                    <h1>Welcome to NFTySWAP</h1>
+                    <h1>Welcome to NFTeSWAP</h1>
                 </div>
                 <div className={"nested left-opener"}>
                     <div>

@@ -72,7 +72,7 @@ def update_owned(pubkey):
                 mint_address=mintKey,
                 network=SolanaNetwork.MAINNET_BETA
             )
-            if nft_metadata['update_authority'] in verifiedCollections.keys():
+            if nft_metadata['update_authority'] in list(verifiedCollections.keys()):
                 print(mintKey + ": "+"Verified")
                 verifiedNfts[mintKey] = nft_metadata['update_authority']
             else:
@@ -311,24 +311,40 @@ def browse_collections():
         try:
             while len(pubkeysToMints[list(pubkeysToMints.keys())[counter]]) == 0:
                 counter += 1
-            publicKeyOwner = list(pubkeysToMints.keys())[counter]
-            for user in list(userAccounts.keys()):
-                publickkey = userAccounts[user]
-                if publickkey == publicKeyOwner:
-                    for userc in userCreds:
-                        if userc['accountid'] == user:
-                            username = userc['username']
-                    usernamesToMints.append({username: [{mint: minttoMetadata[mint]} for mint in pubkeysToMints[list(pubkeysToMints.keys())[counter]]]})
-                    break
-            counter += 1
         except:
-            return jsonify(
-                usernamesToMints
-            )
+            break
+        publicKeyOwner = list(pubkeysToMints.keys())[counter]
+        for user in list(userAccounts.keys()):
+            publickkey = userAccounts[user]
+            if publickkey == publicKeyOwner:
+                for userc in userCreds:
+                    if userc['accountid'] == user:
+                        username = userc['username']
+                usernamesToMints.append({username: [{mint: minttoMetadata[mint]} for mint in pubkeysToMints[list(pubkeysToMints.keys())[counter]]]})
+                break
+        counter += 1
 
-    return jsonify(
-        usernamesToMints
-    )
+    print(usernamesToMints)
+    verifiedNfts = json.load(open("./verifiedNfts.json", "r"))
+    nftverilist = list(verifiedNfts.keys())
+    verifiedCollections = json.load(open("./verifiedCollections.json", "r"))
+
+    mintsVerificationStatus = {}
+    client2 = Client(getSolanaUrl())
+
+    for tempUser in usernamesToMints:
+        username = list(tempUser.keys())[0]
+        for mint in tempUser[username]:
+            NFT_MINT = str(client2.get_account_info(solana.publickey.PublicKey(list(mint.keys())[0]), encoding="jsonParsed")['result']['value']['data']['parsed']['info']['mint'])
+            if NFT_MINT in nftverilist:
+                mintsVerificationStatus[list(mint.keys())[0]] = ["Verified", verifiedCollections[verifiedNfts[NFT_MINT]]['name']]
+            else:
+                mintsVerificationStatus[list(mint.keys())[0]] = ["Unverified", ""]
+
+    return jsonify({
+        "usermints": usernamesToMints,
+        "verification": mintsVerificationStatus
+    })
 
 @app.route('/withdraw', methods=['POST'])
 def withdraw_nft():
@@ -592,6 +608,7 @@ def trade_page(address):
             session = json.load(open("./session.json", "r"))
             owner = session[request.cookies.get("sessionid")]
         except:
+            print("error")
             return render_template("trade.html")
         del session
 
@@ -612,14 +629,35 @@ def get_acct_nfts(address):
                 raddress = creds["accountid"]
         accounts = json.load(open("./accounts.json", "r"))
         ownedAcct = accounts[raddress]
+        del accounts
         addressToMint = json.load(open("./publickeyToMint.json", "r"))
         mints = addressToMint[ownedAcct]
+        del addressToMint
         mintToUrl = json.load(open("./mintToMetaData.json", "r"))
         acctNfts = {mint: mintToUrl[mint] for mint in mints}
+        del mintToUrl
 
-        return jsonify(acctNfts)
+        verifiedNfts = json.load(open("./verifiedNfts.json", "r"))
+        verifiedCollections = json.load(open("./verifiedCollections.json", "r"))
 
-@app.route('/nfts/mine', methods=['GET'])
+        nftverification = {}
+        client2 = Client(getSolanaUrl())
+
+        for nftmint in acctNfts.keys():
+            NFT_MINT = str(
+                client2.get_account_info(solana.publickey.PublicKey(nftmint), encoding="jsonParsed")[
+                    'result']['value']['data']['parsed']['info']['mint'])
+            if NFT_MINT in list(verifiedNfts.keys()):
+                nftverification[nftmint] = ["Verified", verifiedCollections[verifiedNfts[NFT_MINT]]["name"]]
+            else:
+                nftverification[nftmint] = ["Unverified", ""]
+
+
+        print(acctNfts)
+
+        return jsonify({"nfts": acctNfts, "nftverification": nftverification})
+#TODO: fix the problem where if address = mine, the route gets confused
+@app.route('/nfts/s/mine', methods=['GET'])
 def get_users_nfts():
     if request.method == "GET":
         session = json.load(open("./session.json", "r"))
@@ -633,10 +671,26 @@ def get_users_nfts():
         ownedAcct = accounts[raddress]
         addressToMint = json.load(open("./publickeyToMint.json", "r"))
         mints = addressToMint[ownedAcct]
+
         mintToUrl = json.load(open("./mintToMetaData.json", "r"))
         acctNfts = {mint: mintToUrl[mint] for mint in mints}
 
-        return jsonify(acctNfts)
+        verifiedNfts = json.load(open("./verifiedNfts.json", "r"))
+        verifiedCollections = json.load(open("./verifiedCollections.json", "r"))
+
+        nftverification = {}
+        client2 = Client(getSolanaUrl())
+
+        for nftmint in acctNfts.keys():
+            NFT_MINT = str(client2.get_account_info(solana.publickey.PublicKey(nftmint), encoding="jsonParsed")['result']['value']['data']['parsed']['info']['mint'])
+            if NFT_MINT in list(verifiedNfts.keys()):
+                nftverification[nftmint] = ["Verified", verifiedCollections[verifiedNfts[NFT_MINT]]["name"]]
+            else:
+                nftverification[nftmint] = ["Unverified", ""]
+
+
+
+        return jsonify({"nfts": acctNfts, "nftverification": nftverification})
 
 @app.route('/user/<string:address>', methods=['GET'])
 def user_acct(address):
@@ -685,7 +739,7 @@ def get_owned_nft():
                     mint_address=mintKey,
                     network=SolanaNetwork.MAINNET_BETA
                 )
-                if nft_metadata['update_authority'] in verifiedCollections.keys():
+                if nft_metadata['update_authority'] in list(verifiedCollections.keys()):
                     verified = "Verified"
                     verifiedB = verifiedCollections[nft_metadata['update_authority']]['name']
                     print(verifiedB)

@@ -3,7 +3,16 @@ class App extends React.Component{
     constructor(props) {
         super(props);
 
-        this.state = {"pubKey": "", "nfts": [], "loggedIn": false, "logoutButton": false, "loginForm": false, "pageAddr": "", "selectedMetadata": ""}
+        this.state = {
+            "pubKey": "",
+            "nfts": [],
+            "loggedIn": false,
+            "logoutButton": false,
+            "loginForm": false,
+            "pageAddr": "",
+            "selectedMetadata": "",
+            "metadata": {}
+        }
     }
 
     componentDidMount(){
@@ -161,11 +170,12 @@ class App extends React.Component{
             url: "/nfts/"+pageaddr,
             method: "get",
             success: (result) => {
-                Object.keys(result).forEach((item) => {
+                that.setState({"metadata": result.nftverification})
+                Object.keys(result.nfts).forEach((item) => {
                     $.ajax({
-                        url: result[item],
-                        success: (result) => {
-                            currentNfts.push([item, result])
+                        url: result.nfts[item],
+                        success: (results) => {
+                            currentNfts.push([item, results])
                             that.setState({"nfts": currentNfts})
                         }
                     })
@@ -194,6 +204,7 @@ class App extends React.Component{
                  <div className={"nft-display"}>
                      {this.state.nfts.map((item, idx) => (
                          <div onClick={() => this.openmetadata(item[0])} key={idx} className={"nft-case"}>
+                             <h3>{this.state.metadata[item[0]][0]}</h3>
                             <p>{item[1].name}</p>
                             <img src={item[1].image} />
                          </div>
@@ -215,6 +226,13 @@ class App extends React.Component{
 
         if (this.state.selectedMetadata.length > 0){
 
+            var metadata = this.state.metadata[this.state.selectedMetadata]
+            var verified = metadata[0]
+            var verifiedB = metadata[1]
+
+
+
+
             var metadata = ""
             this.state.nfts.forEach((nft) => {
                 if (nft[0] == this.state.selectedMetadata ){
@@ -230,6 +248,7 @@ class App extends React.Component{
                 <div className={"nft-metadata-case"}>
                     <button onClick={() => close()}>Close</button>
                     <h2>{metadata.name}</h2>
+                    <h3>{verified} {verifiedB}</h3>
                     <p>{metadata.description}</p>
                     <img src={metadata.image} />
                         <h3>Attributes</h3>

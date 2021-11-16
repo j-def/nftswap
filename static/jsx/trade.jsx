@@ -14,7 +14,8 @@ class App extends React.Component{
             "traderSelected": [],
             "offerMessage": "",
             "pubkeyBalance": "0",
-            "selectedMetadata": ""}
+            "selectedMetadata": "",
+            "recverification": {}}
     }
 
     componentDidMount(){
@@ -145,10 +146,13 @@ class App extends React.Component{
             success: (result) => {
                 //that.setState({"ownerNfts": result})
                 let currentNfts = []
+                console.log(result)
+                that.setState({"recverification": result.nftverification})
 
-                Object.keys(result).forEach((item) => {
+                Object.keys(result.nfts).forEach((item) => {
+
                     $.ajax({
-                        url: result[item],
+                        url: result.nfts[item],
                         success: (results) => {
 
                             currentNfts.push([item, results])
@@ -163,14 +167,16 @@ class App extends React.Component{
 
     ownerItems = () => {
         var that = this
+
+
         $.ajax({
-            url: "/nfts/mine",
+            url: "/nfts/s/mine",
             success: (result) => {
-                //that.setState({"ownerNfts": result})
                 let currentNfts = []
-                Object.keys(result).forEach((item) => {
+                that.setState({"sendverification": result.nftverification})
+                Object.keys(result.nfts).forEach((item) => {
                     $.ajax({
-                        url: result[item],
+                        url: result.nfts[item],
                         success: (results) => {
                             currentNfts.push([item, results])
                             that.setState({"ownerNfts": currentNfts})
@@ -333,7 +339,8 @@ class App extends React.Component{
                          {empty1}
                          {this.state.ownerNfts.map((item, idx) => (
                              <div key={idx} onClick={() => this.ownerSelectNft(item[0])} className={"nft-case "+ownerIsSelected(item[0])}>
-                                <p>{item[1].name}</p>
+                                 <h3>{this.state.sendverification[item[0]][0]}</h3>
+                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
                                 <button onClick={() => this.openmetadata(item[0])} className={"metadata"}>View Metadata</button>
                              </div>
@@ -346,7 +353,8 @@ class App extends React.Component{
                         {empty2}
                          {this.state.traderNfts.map((item, idx) => (
                              <div key={idx}  onClick={() => this.traderSelectNft(item[0])} className={"nft-case "+ traderIsSelected(item[0])}>
-                                <p>{item[1].name}</p>
+                                <h3>{this.state.recverification[item[0]][0]}</h3>
+                                 <p>{item[1].name}</p>
                                 <img src={item[1].image} />
                                 <button onClick={() => this.openmetadata(item[0])} className={"metadata"}>View Metadata</button>
                              </div>
@@ -393,10 +401,28 @@ class App extends React.Component{
                 this.setState({"selectedMetadata": ""})
             }
 
+            var verified = ""
+            var verifiedB = ""
+            var verification = []
+            if (Object.keys(this.state.sendverification).includes(this.state.selectedMetadata)){
+                verification = this.state.sendverification[this.state.selectedMetadata]
+                verified = verification[0]
+                verifiedB = verification[1]
+            }
+
+            if (Object.keys(this.state.recverification).includes(this.state.selectedMetadata)){
+                verification = this.state.recverification[this.state.selectedMetadata]
+                verified = verification[0]
+                verifiedB = verification[1]
+            }
+
+
+
             return(
                 <div className={"nft-metadata-case"}>
                     <button onClick={() => close()}>Close</button>
                     <h2>{metadata.name}</h2>
+                    <h3>{verified} {verifiedB}</h3>
                     <p>{metadata.description}</p>
                     <img src={metadata.image} />
                         <h3>Attributes</h3>
