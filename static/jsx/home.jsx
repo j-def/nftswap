@@ -20,8 +20,11 @@ class App extends React.Component{
             "loadingCompleted": true,
             "tableHovering": [],
             "tableHoveringRow": "",
-            "selectedMetadata": ""}
+            "selectedMetadata": "",
+            "notifications": []
+        }
     }
+
 
     componentDidMount(){
         var that = this
@@ -620,6 +623,34 @@ class App extends React.Component{
             )
         }
 
+    }
+
+
+    addNotif = (message) => {
+        var currentNotifs = this.state.notifications
+        currentNotifs.push(message)
+        this.setState({"notifications": currentNotifs})
+
+        setTimeout(() => {
+                currentNotifs = this.state.notifications
+                currentNotifs.splice(0, 1)
+               this.setState({"notifications": currentNotifs})
+        }, 5000)
+
+    }
+
+    renderNotifications = () => {
+
+        return(
+            <div className={"invisible-notification-bar"}>
+                {this.state.notifications.map((notif, idx) => (
+                    <div key={idx} id={"notification"+idx} className={"notification"}>
+                        <p>{notif}</p>
+                    </div>
+                ))}
+                <button onClick={() => this.addNotif("FUCK")}>Add Notif</button>
+            </div>
+        )
     }
 
     render(){

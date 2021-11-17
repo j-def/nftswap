@@ -2,7 +2,14 @@
 class App extends React.Component{
     constructor(props) {
         super(props);
-        this.state = {"loginForm": false, "accountCreateMessage": "", "signupForm": false}
+        this.state = {
+            "loginForm": false,
+            "accountCreateMessage": "",
+            "accountLoginMessage": "",
+            "signupForm": false,
+            "tempUser": "",
+            "tempPass": ""
+        }
     }
 
     grabnfts =  (publicKey) => {
@@ -50,6 +57,7 @@ class App extends React.Component{
 
 
     userloginpost = () => {
+        var that = this
         $.ajax({
             url: "/login",
             method: "post",
@@ -60,6 +68,8 @@ class App extends React.Component{
             success: (result) => {
                 if (result.status == "success"){
                     window.location.href = "/"
+                } else{
+                    that.setState({"accountLoginMessage": result})
                 }
             }
         })
@@ -75,6 +85,14 @@ class App extends React.Component{
             this.setState({"loginForm": newState, "signupForm": false})
     }
 
+    displayLoginMessage = () => {
+         if (this.state.accountLoginMessage != ""){
+            return(
+                <p>{this.state.accountLoginMessage}</p>
+            )
+        }
+    }
+
     userLoginForm = () => {
 
         if (this.state.loginForm == true){
@@ -84,6 +102,7 @@ class App extends React.Component{
                     <input type={"text"} id={"username-input"} placeholder={"Username"} /> <br />
                     <input type={"password"} id={"password-input"} placeholder={"Password"}/> <br/>
                     <button onClick={() => {this.userloginpost()}}>Login</button>
+                    {this.displayLoginMessage()}
                 </div>
             )
         }
@@ -178,12 +197,34 @@ class App extends React.Component{
     }
 
     createAccount = () => {
+        var username = this.state.tempUser
+        var password = this.state.tempPass
+        var usernameNotice = ""
+        var passwordNotice = ""
+        if (username.length < 4 && username.length > 0){
+                usernameNotice = <p>Must be at least 4 characters</p>
+            }
+        if (password.length < 4 && password.length > 0){
+                passwordNotice = <p>Must be at least 8 characters</p>
+            }
+
+        var editUser = (e) => {
+            this.setState({"tempUser": e.target.value})
+
+        }
+        var editPass = (e) => {
+            this.setState({"tempPass": e.target.value})
+
+        }
+
         return(
             <div style={{"textAlign": "center" }} id={"account-create"}>
                 <h4>Create Account</h4>
-                <input type={"text"} placeholder={"Username"} id={"new-username-input"} />
+                <input type={"text"} onChange={(e) => editUser(e)} placeholder={"Username"} id={"new-username-input"} />
+                {usernameNotice}
                 <br />
-                <input type={"password"} placeholder={"Password"} id={"new-password-input"} />
+                <input type={"password"} onChange={(e) => editPass(e)} placeholder={"Password"} id={"new-password-input"} />
+                {passwordNotice}
                 <br />
 
                 <button onClick={() => this.accountCreatePost()}>Create</button>

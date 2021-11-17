@@ -446,6 +446,11 @@ def create_new_account():
     if request.method == "POST":
         newuser = request.form['username']
         newpass = request.form['password']
+
+        if len(newuser) < 4:
+            return "Username too short"
+        if len(newpass) < 4:
+            return "Password too short"
         newuserid = ''.join([random.choice(string.ascii_uppercase+string.digits) for x in range(15)])
         userAccts = json.load(open("./userCredentials.json", "r"))
         for acct in userAccts:
@@ -479,6 +484,7 @@ def login():
                 resp = make_response(jsonify({"status": "success"}))
                 resp.set_cookie("sessionid", sessionId, max_age=60 * 60 * 24)
                 return resp
+        return "Username or password did not work"
 
 @app.route('/trades/mine', methods=['GET'])
 def get_my_trades():

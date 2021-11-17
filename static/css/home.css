@@ -230,3 +230,28 @@ table{
 .nft-metadata-case button{
 
 }
+.invisible-notification-bar{
+    width: 25%;
+    position: fixed;
+    left: 15%;
+    height: calc(100% - 100px);
+    top: 100px;
+    border: solid 1px white;
+}
+.notification {
+    width: 50%;
+    min-width: fit-content;
+    padding: 5px 25px;
+    border: solid 1px white;
+    border-radius: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 25px;
+    animation: leave 5s;
+}
+
+@keyframes leave {
+  0% { opacity: 1;}
+    80% { opacity: 1;}
+  100% {  opacity: 0; }
+}
