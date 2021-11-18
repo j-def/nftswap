@@ -285,15 +285,26 @@ def withdraw_sol():
 def search_users():
     query = request.args['query']
     userCreds = json.load(open("./userCredentials.json", "r"))
-    searchCount = 10
-    returnList = []
+    userList = []
     for user in userCreds:
-        if searchCount == 0:
-            break
         if query in user['username']:
-            returnList.append(user['username'])
-            searchCount -= 1
-    return jsonify(returnList)
+            userList.append(user['username'])
+
+    del userCreds
+
+    collections = json.load(open("./verifiedCollections.json", "r"))
+    collectionList = []
+    for collection in list(collections.keys()):
+        if query in collections[collection]['name']:
+            collectionList.append(collections[collection])
+
+    del collections
+
+    print(userList)
+    print(collectionList)
+
+    #return jsonify({"users": userList, "collections": collectionList})
+    return jsonify({"users": userList})
 
 @app.route('/browse', methods=['GET'])
 def browse_available():
@@ -301,6 +312,7 @@ def browse_available():
 
 @app.route('/browse/selections', methods=['GET'])
 def browse_collections():
+    query = request.args['query']
     usernamesToMints = []
     userCreds = json.load(open("./userCredentials.json", "r"))
     pubkeysToMints = json.load(open("./publickeyToMint.json", "r"))
@@ -320,8 +332,11 @@ def browse_collections():
                 for userc in userCreds:
                     if userc['accountid'] == user:
                         username = userc['username']
-                usernamesToMints.append({username: [{mint: minttoMetadata[mint]} for mint in pubkeysToMints[list(pubkeysToMints.keys())[counter]]]})
-                break
+                if query in username:
+                    mintData = [{"mint": mint ,"minturi": minttoMetadata[mint]} for mint in pubkeysToMints[list(pubkeysToMints.keys())[counter]]]
+                    usernamesToMints.append({"username": username,
+                                            "mintdata": mintData})
+
         counter += 1
 
     print(usernamesToMints)
@@ -333,13 +348,12 @@ def browse_collections():
     client2 = Client(getSolanaUrl())
 
     for tempUser in usernamesToMints:
-        username = list(tempUser.keys())[0]
-        for mint in tempUser[username]:
-            NFT_MINT = str(client2.get_account_info(solana.publickey.PublicKey(list(mint.keys())[0]), encoding="jsonParsed")['result']['value']['data']['parsed']['info']['mint'])
+        for mint in tempUser['mintdata']:
+            NFT_MINT = str(client2.get_account_info(solana.publickey.PublicKey(mint['mint']), encoding="jsonParsed")['result']['value']['data']['parsed']['info']['mint'])
             if NFT_MINT in nftverilist:
-                mintsVerificationStatus[list(mint.keys())[0]] = ["Verified", verifiedCollections[verifiedNfts[NFT_MINT]]['name']]
+                mintsVerificationStatus[mint['mint']] = ["Verified", verifiedCollections[verifiedNfts[NFT_MINT]]['name']]
             else:
-                mintsVerificationStatus[list(mint.keys())[0]] = ["Unverified", ""]
+                mintsVerificationStatus[mint['mint']] = ["Unverified", ""]
 
     return jsonify({
         "usermints": usernamesToMints,

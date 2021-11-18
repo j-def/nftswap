@@ -2,13 +2,13 @@
 body,html{
     padding: 0;
     margin: 0;
-    background-color: #2F3136;
+    background-color: #092234;
     font-family: 'Lato', sans-serif;
     color: white;
 }
 #header{
     width: 100%;
-    height: 100px;
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -117,7 +117,7 @@ p{
     border: solid 1px #b8b8b8;
     border-radius: 0px 0px 10px 10px;
     position: absolute;
-    top: 100px;
+    top: 100%;
     right: 10px;
     padding: 10px;
     background-color: #2F3136;

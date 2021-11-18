@@ -21,7 +21,8 @@ class App extends React.Component{
             "tableHovering": [],
             "tableHoveringRow": "",
             "selectedMetadata": "",
-            "notifications": []
+            "notifications": [],
+            "renderShow": 0
         }
     }
 
@@ -565,11 +566,14 @@ class App extends React.Component{
     }
 
         footer = () => {
-        return(
-            <div>
-                <h4>Developed by CheddaMane#1720</h4>
-            </div>
-        )
+        return(<div style={{"display": "flex", "flexWrap": "no-wrap", "justifyContent": "space-around", "gap": "10px"}}>
+                <div>
+                    <h4>Developed by CheddaMane#1720</h4>
+                </div>
+                <div>
+                    <h4>Talk to us on <a href={"https://discord.gg/fk8UFWTaGm"}>Discord</a>!</h4>
+                </div>
+            </div>)
     }
 
     openmetadata = (metamint) => {
@@ -653,14 +657,43 @@ class App extends React.Component{
         )
     }
 
+    updateRenderShow = (renderId) => {
+        this.setState({"renderShow": renderId})
+    }
+
+    renderSlots = () => {
+        var slotData = ""
+        var currentSlot = this.state.renderShow
+        switch (currentSlot){
+            case 0:
+                slotData = this.depositNFT()
+                break
+            case 1:
+                slotData = this.tradeOffers()
+                break
+            case 2:
+                slotData = this.displaycompletedtrades()
+                break
+        }
+
+        return(
+            <div>
+                <div id={"home-buttons"}>
+                    <button onClick={() => this.updateRenderShow(0)}>Wallet</button>
+                    <button onClick={() => this.updateRenderShow(1)}>Trade Offers</button>
+                    <button onClick={() => this.updateRenderShow(2)}>Completed Trades</button>
+                </div>
+                {slotData}
+            </div>
+        )
+    }
+
     render(){
         return(
             <div>
                 {this.header()}
                  <h1>{$("#user-username").val()}</h1>
-                {this.depositNFT()}
-                {this.tradeOffers()}
-                {this.displaycompletedtrades()}
+                {this.renderSlots()}
                 {this.footer()}
                 {this.renderMetadata()}
             </div>

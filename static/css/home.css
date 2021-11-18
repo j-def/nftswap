@@ -3,7 +3,7 @@ body,html{
     padding: 0;
     margin: 0;
     font-family: 'Lato', sans-serif;
-    background-color: #2F3136;
+    background-color: #092234;
     color: white;
 }
 #header{
@@ -254,4 +254,14 @@ table{
   0% { opacity: 1;}
     80% { opacity: 1;}
   100% {  opacity: 0; }
+}
+a{
+    color: white;
+}
+#home-buttons{
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    gap: 10px;
+
 }

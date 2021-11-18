@@ -136,7 +136,7 @@ class App extends React.Component{
             return(
                  <div id="header">
                      <div id={"header-left"}>
-                         <div className={"logo"}>
+                         <div onClick={() => this.toHome()} className={"logo"}>
                             <img src={"/static/images/logo.png"} />
                         </div>
 

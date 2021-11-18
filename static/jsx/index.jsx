@@ -245,26 +245,26 @@ class App extends React.Component{
         return(
             <div>
                 <div className={"welcome-cover"}>
-                    <h1>Welcome to NFTeSWAP</h1>
+                    <h1>Welcome to NFTeSWAP <i>beta</i></h1>
                 </div>
                 <div className={"nested left-opener"}>
                     <div>
                          <img src={"/static/images/nftswap.png"} />
                     </div>
                     <div>
-                        <h2>Join the #1 Solana NFT Trading Platform</h2>
+                        <h2 className={"font-1"}>Join the #1 Solana NFT Trading Platform</h2>
                         <br />
-                        <h2>Trade Safely and Securely From Anywhere in the World</h2>
+                        <h2  className={"font-2"}>Trade Safely and Securely From Anywhere in the World</h2>
                     </div>
                 </div>
                 <div className={"nested right-opener"}>
                     <div>
-                        <h2>Start Trading on Solana's Safest NFT Swap!</h2>
-                        <h3>How it works</h3>
-                <h4>1. Create an account</h4>
-                <h4>2. Deposit your Solana Based NFT's</h4>
-                <h4>3. Send or Receive a Trade Offer!</h4>
-                <h4>4. Complete a Trade and Withdraw your new NFT's and SOL</h4>
+                        <h2 className={"font-1"}>Start Trading on Solana's Safest NFT Swap!</h2>
+                        <h3 className={"font-2"}>How it works</h3>
+                <h4 className={"font-2b"}>1. Create an account</h4>
+                <h4 className={"font-2b"}>2. Deposit your Solana Based NFT's</h4>
+                <h4 className={"font-2b"}>3. Send or Receive a Trade Offer!</h4>
+                <h4 className={"font-2b"}>4. Complete a Trade and Withdraw your new NFT's and SOL</h4>
                     </div>
                     <div>
                          <img src={"/static/images/nftchain.png"} />
@@ -276,18 +276,12 @@ class App extends React.Component{
 
     contactUs = () => {
         return(
-            <div style={{"display": "flex", "flexWrap": "no-wrap", "justifyContent": "center", "gap": "10px"}}>
+            <div style={{"display": "flex", "flexWrap": "no-wrap", "justifyContent": "space-around", "gap": "10px"}}>
                 <div>
                     <h4>Developed by CheddaMane#1720</h4>
                 </div>
                 <div>
-                    <h3>Talk to us!</h3>
-                    <div style={{"display": "flex", "justifyContent": "center", "gap": "10px"}}>
-                        <div>
-                            <a href={"https://discord.gg/fk8UFWTaGm"}>Discord</a>
-                        </div>
-
-                    </div>
+                    <h4>Talk to us on <a href={"https://discord.gg/fk8UFWTaGm"}>Discord</a>!</h4>
                 </div>
             </div>
         )
