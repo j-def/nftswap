@@ -14,7 +14,9 @@ class App extends React.Component{
             "selectedMetadata": "",
             "selectedURI": "",
             "mintVerification": [],
-            "limitedCollections": []
+            "limitedCollections": [],
+            "tempUser": "",
+            "tempPass": ""
         }
     }
 
@@ -31,7 +33,8 @@ class App extends React.Component{
         })
     }
 
-    userloginpost = () => {
+        userloginpost = () => {
+        var that = this
         $.ajax({
             url: "/login",
             method: "post",
@@ -41,7 +44,9 @@ class App extends React.Component{
             },
             success: (result) => {
                 if (result.status == "success"){
-                    window.location.reload()
+                    window.location.href = "/"
+                } else{
+                    that.setState({"accountLoginMessage": result})
                 }
             }
         })
@@ -54,7 +59,15 @@ class App extends React.Component{
             } else{
                 newState = false
             }
-            this.setState({"loginForm": newState})
+            this.setState({"loginForm": newState, "signupForm": false})
+    }
+
+    displayLoginMessage = () => {
+         if (this.state.accountLoginMessage != ""){
+            return(
+                <p>{this.state.accountLoginMessage}</p>
+            )
+        }
     }
 
     userLoginForm = () => {
@@ -62,9 +75,11 @@ class App extends React.Component{
         if (this.state.loginForm == true){
             return(
                 <div className={"user-login_box"}>
+                    <h4>Login</h4>
                     <input type={"text"} id={"username-input"} placeholder={"Username"} /> <br />
                     <input type={"password"} id={"password-input"} placeholder={"Password"}/> <br/>
                     <button onClick={() => {this.userloginpost()}}>Login</button>
+                    {this.displayLoginMessage()}
                 </div>
             )
         }
@@ -75,6 +90,8 @@ class App extends React.Component{
 
         this.setState({"logoutButton": !this.state.logoutButton})
     }
+
+
 
     logout = () => {
         window.location.href = "/logout"
@@ -88,6 +105,87 @@ class App extends React.Component{
             )
         }
 
+    }
+
+    userSignUpToggle = () => {
+            var newState = this.state.signupForm
+            if (newState == false){
+                newState = true
+            } else{
+                newState = false
+            }
+            this.setState({"signupForm": newState, "loginForm": false})
+    }
+
+     userSignUpForm = () => {
+
+        if (this.state.signupForm == true){
+            return(this.createAccount())
+        }
+
+    }
+
+    createAccount = () => {
+        var username = this.state.tempUser
+        var password = this.state.tempPass
+        var usernameNotice = ""
+        var passwordNotice = ""
+        if (username.length < 4 && username.length > 0){
+                usernameNotice = <p>Must be at least 4 characters</p>
+            }
+        if (password.length < 4 && password.length > 0){
+                passwordNotice = <p>Must be at least 8 characters</p>
+            }
+
+        var editUser = (e) => {
+            this.setState({"tempUser": e.target.value})
+
+        }
+        var editPass = (e) => {
+            this.setState({"tempPass": e.target.value})
+
+        }
+
+        return(
+            <div style={{"textAlign": "center" }} id={"account-create"}>
+                <h4>Create Account</h4>
+                <input type={"text"} onChange={(e) => editUser(e)} placeholder={"Username"} id={"new-username-input"} />
+                {usernameNotice}
+                <br />
+                <input type={"password"} onChange={(e) => editPass(e)} placeholder={"Password"} id={"new-password-input"} />
+                {passwordNotice}
+                <br />
+
+                <button onClick={() => this.accountCreatePost()}>Create</button>
+                {this.displayCreationMessage()}
+            </div>
+        )
+    }
+
+       displayCreationMessage = () => {
+        if (this.state.accountCreateMessage != ""){
+            return(
+                <p>{this.state.accountCreateMessage}</p>
+            )
+        }
+    }
+     accountCreatePost = () => {
+        var that = this
+        $.ajax({
+            url: "/accountcreation",
+            data: {
+                "username": $("#new-username-input").val(),
+                "password": $("#new-password-input").val()
+            },
+            method: "post",
+            success: (result) => {
+                if (result == "created"){
+                    that.setState({"accountCreateMessage": "Success! Login now"})
+                } else{
+                    that.setState({"accountCreateMessage": result})
+                }
+            }
+        })
     }
 
     goHome = () => {
@@ -106,6 +204,8 @@ class App extends React.Component{
                     </div>
 
                      <div id={"header-right"}>
+
+
                               <div onClick={() => this.userLogoutToggle()} className={"login-button"}>
                                 <p>Logged In</p>
 
@@ -128,6 +228,11 @@ class App extends React.Component{
 
                     </div>
                      <div id={"header-right"}>
+
+                        <div onClick={() => this.userSignUpToggle()} className={"login-button"} >
+                            <p>Create Account</p>
+                        </div>
+                         {this.userSignUpForm()}
 
                         <div onClick={() => this.userLoginToggle()} className={"login-button"}>
                             <p>Login</p>

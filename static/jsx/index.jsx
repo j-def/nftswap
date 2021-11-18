@@ -8,7 +8,8 @@ class App extends React.Component{
             "accountLoginMessage": "",
             "signupForm": false,
             "tempUser": "",
-            "tempPass": ""
+            "tempPass": "",
+            "accountCreateMessage": ""
         }
     }
 

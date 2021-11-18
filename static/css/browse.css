@@ -269,3 +269,37 @@ a{
     border-radius: 5px;
 
 }
+
+#account-create{
+    z-index: 999;
+    border: solid 1px #b8b8b8;
+    border-radius: 0px 0px 10px 10px;
+    position: absolute;
+    top: 100%;
+    right: 10px;
+    padding: 10px;
+    background-color: #2F3136;
+}
+
+#account-create input{
+    margin: 0px;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+    border: solid 1px white;
+    border-right: 0;
+    border-radius: 5px;
+}
+#account-create button{
+    background-color: white;
+    border: solid 1px white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    transition: 0.25s;
+    cursor: pointer;
+    color: black;
+}
+#account-create button:hover{
+    border-color: transparent;
+    background-color: #1f76e0;
+    color: white;
+}
