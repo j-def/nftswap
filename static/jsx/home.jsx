@@ -58,9 +58,6 @@ class App extends React.Component{
     }
 
 
-
-
-
     userLogoutToggle = () => {
             var newState = this.state.logoutButton
             if (newState == false){
@@ -227,7 +224,10 @@ class App extends React.Component{
 
     withdrawSol = () => {
         var that = this
-        console.log($("#withdraw-address-input").val(), $("#withdraw-amt-input").val())
+        if ($("#withdraw-amt-input").val() == "" || $("#withdraw-address-input").val() == ""){
+            that.setState({"withdrawSolMessage": "Form incomplete"})
+        }
+
         $.ajax({
             url: "/withdraw/sol",
             method: "post",
@@ -236,7 +236,11 @@ class App extends React.Component{
                 "withdrawPubkey": $("#withdraw-address-input").val()
             },
             success: (result) => {
-                console.log(result)
+                if (result == "success"){
+                    that.setState({"withdrawSolMessage": "Withdraw Successful!"})
+                } else{
+                    that.setState({"withdrawSolMessage": result})
+                }
             }
         })
     }
@@ -266,6 +270,7 @@ class App extends React.Component{
                     <input type={"number"} onChange={(e) => verifyAmt(e)} id={"withdraw-amt-input"} placeholder={"Withdraw Amount"}/>
                     <input type={"text"} id={"withdraw-address-input"}  placeholder={"Withdraw Address"}/>
                     <button onClick={() => this.withdrawSol()}>Confirm Withdraw</button>
+                    <p>{this.state.withdrawSolMessage}</p>
                 </div>
             )
         }
@@ -674,6 +679,9 @@ class App extends React.Component{
             case 2:
                 slotData = this.displaycompletedtrades()
                 break
+            case 3:
+                slotData = this.displaySettings()
+                break
         }
 
         return(
@@ -682,10 +690,38 @@ class App extends React.Component{
                     <button onClick={() => this.updateRenderShow(0)}>Wallet</button>
                     <button onClick={() => this.updateRenderShow(1)}>Trade Offers</button>
                     <button onClick={() => this.updateRenderShow(2)}>Completed Trades</button>
+                    <button onClick={() => this.updateRenderShow(3)}>Settings</button>
                 </div>
                 {slotData}
             </div>
         )
+    }
+
+    displaySettings = () => {
+
+        var saveSettings = () => {
+
+        }
+
+
+        return(
+            <div>
+                <h2>Settings</h2>
+                <table style={{"marginLeft": "auto", "marginRight": "auto", "textAlign": "center"}}>
+                    <tbody>
+                    <tr>
+                        <td><p>Email</p></td>
+                        <td><input id={"email-input"} type={"text"} placeholder={"Email"}/></td>
+                    </tr>
+                    <tr>
+                        <td><p>Save Settings</p></td>
+                        <td><button>Save</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        )
+
     }
 
     render(){

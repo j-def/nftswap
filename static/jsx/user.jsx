@@ -143,7 +143,7 @@ class App extends React.Component{
 
                     </div>
                      <div id={"header-right"}>
-                          <div onClick={() => this.toHome()} className={"login-button"}>
+                          <div onClick={() => this.toBrowse()} className={"login-button"}>
                              <p>Browser</p>
                         </div>
                     <div onClick={() => this.userLoginToggle()} className={"login-button"} id={"phantom-login"}>
@@ -199,7 +199,7 @@ class App extends React.Component{
 
         return(
             <div id={"user-data-display"}>
-                <h1>User Wallet</h1>
+                <h1>User {this.state.pageAddr}'s Wallet</h1>
                 {tradeButton()}
                  <div className={"nft-display"}>
                      {this.state.nfts.map((item, idx) => (

@@ -9,7 +9,8 @@ class App extends React.Component{
             "signupForm": false,
             "tempUser": "",
             "tempPass": "",
-            "accountCreateMessage": ""
+            "accountCreateMessage": "",
+            "expandedFAQs": [],
         }
     }
 
@@ -296,12 +297,55 @@ class App extends React.Component{
         )
     }
 
+    faq = () => {
+
+        const faqMessages = ["There are no fees currently!"]
+
+
+        var faqAnswerDisplay = (idx) => {
+                if (this.state.expandedFAQs.includes(idx)){
+                    return(
+                        <p>{faqMessages[idx]}</p>
+                    )
+            }
+        }
+
+        var expandFAQ = (idx) => {
+            let expanded = this.state.expandedFAQs
+            if (expanded.includes(idx)){
+                expanded.splice(expanded.indexOf(idx), 1)
+                this.setState({"expandedFAQs": expanded})
+            } else{
+                expanded.push(idx)
+                this.setState({"expandedFAQs": expanded})
+            }
+        }
+
+
+        return(
+            <div className={"faq-container"}>
+                <h2>F.A.Q.</h2>
+                <div onClick={() => expandFAQ(0)} className={"faq-box"}>
+                    <div>
+                        <p>What is the fee?</p>
+                        {faqAnswerDisplay(0)}
+                    </div>
+
+                    <img  src={"/static/images/up-arrow.svg"} />
+
+                </div>
+
+            </div>
+        )
+    }
+
 
     render(){
         return(
             <div>
                 {this.header()}
                 {this.welcome2()}
+                {this.faq()}
                 {this.contactUs()}
             </div>
         )

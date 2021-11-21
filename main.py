@@ -86,7 +86,6 @@ def update_owned(pubkey):
     json.dump(addressToMint, open("./publickeyToMint.json", "w"))
     return nftPubKeys
 
-
 def delete_offer(tradeOfferId, userid):
     ownerid = userid
 
@@ -169,36 +168,60 @@ def sendSol(FROM_PUBKEY, TO_PUBKEY, SOLAMT):
     SOLAMT = int(SOLAMT / 0.000000001)
     seed = open("./seeds/" + FROM_PUBKEY, "rb").read()
     fromKeypair = solana.keypair.Keypair().from_seed(seed)
+    client = Client(getSolanaUrl())
 
-    transaction = solana.transaction.Transaction()
+    FEE_PAYER = "4TpMG3FE47ZYaQe8XhQMzKtqXbKR7L3fYfbfgkKJRxf4"
+    FEE_PAYER_SEED = open("./seeds/" + FEE_PAYER, "rb").read()
+    FEE_PAYER_KEYPAIR = solana.keypair.Keypair.from_seed(FEE_PAYER_SEED)
+    FEE_PAYER_PUBLICKEY = solana.publickey.PublicKey(FEE_PAYER)
+    recentBlockhash = solana.blockhash.Blockhash(client.get_recent_blockhash()['result']['value']['blockhash'])
+
+    transaction = solana.transaction.Transaction(fee_payer=FEE_PAYER_PUBLICKEY, recent_blockhash=recentBlockhash)
 
     transferParams = solana.system_program.TransferParams(from_pubkey=solana.publickey.PublicKey(FROM_PUBKEY),
                                                                 lamports=SOLAMT,
                                                                 to_pubkey=solana.publickey.PublicKey(TO_PUBKEY))
     transferInstructions = solana.system_program.transfer(transferParams)
     transaction.add(transferInstructions)
+    transaction.sign(FEE_PAYER_KEYPAIR, fromKeypair)
 
-    resp = client.send_transaction(transaction, fromKeypair)
+    opts = solana.rpc.types.TxOpts()
+    tx = transaction.serialize()
+    resp = client.send_raw_transaction(tx, opts)
+
     return resp
 
 def sendNft(FROM_PUBKEY, TO_PUBKEY, NFT_MINTI):
+    client = Client(getSolanaUrl())
     NFT_MINT = str(client.get_account_info(solana.publickey.PublicKey(NFT_MINTI), encoding="jsonParsed")['result']['value']['data']['parsed']['info']['mint'])
     seed = open("./seeds/" + FROM_PUBKEY, "rb").read()
+
     fromKeypair = solana.keypair.Keypair.from_seed(seed)
-    transaction = solana.transaction.Transaction()
+    FEE_PAYER = "4TpMG3FE47ZYaQe8XhQMzKtqXbKR7L3fYfbfgkKJRxf4"
+    FEE_PAYER_SEED = open("./seeds/" + FEE_PAYER, "rb").read()
+    FEE_PAYER_KEYPAIR = solana.keypair.Keypair.from_seed(FEE_PAYER_SEED)
+    FEE_PAYER_PUBLICKEY = solana.publickey.PublicKey(FEE_PAYER)
+    recentBlockhash = solana.blockhash.Blockhash(client.get_recent_blockhash()['result']['value']['blockhash'])
+
     toke = instructions.get_associated_token_address(solana.publickey.PublicKey(FROM_PUBKEY),
                                                      solana.publickey.PublicKey(NFT_MINT))
     destacct = instructions.get_associated_token_address(solana.publickey.PublicKey(TO_PUBKEY),
                                                          solana.publickey.PublicKey(NFT_MINT))
+
     createATA = instructions.create_associated_token_account(solana.publickey.PublicKey(FROM_PUBKEY),
-                                                    solana.publickey.PublicKey(TO_PUBKEY),
-                                                         solana.publickey.PublicKey(NFT_MINT))
-    transaction2 = solana.transaction.Transaction()
+                                                             solana.publickey.PublicKey(TO_PUBKEY),
+                                                             solana.publickey.PublicKey(NFT_MINT))
+
+    transaction2 = solana.transaction.Transaction(fee_payer=FEE_PAYER_PUBLICKEY, recent_blockhash=recentBlockhash)
     transaction2.add(createATA)
+    transaction2.sign(FEE_PAYER_KEYPAIR, fromKeypair)
+    opts2 = solana.rpc.types.TxOpts()
+    tx2 = transaction2.serialize()
     try:
-        client.send_transaction(transaction2, fromKeypair)
+        resp = client.send_raw_transaction(tx2, opts2)
     except:
         pass
+
     tokenTransParams = instructions.TransferCheckedParams(amount=1,
                                                           decimals=0,
                                                           dest=destacct,
@@ -207,8 +230,15 @@ def sendNft(FROM_PUBKEY, TO_PUBKEY, NFT_MINTI):
                                                           program_id=solana.publickey.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
                                                           source=toke)
     transferInstructions = instructions.transfer_checked(tokenTransParams)
+    transaction = solana.transaction.Transaction(fee_payer=FEE_PAYER_PUBLICKEY, recent_blockhash=recentBlockhash)
     transaction.add(transferInstructions)
-    resp = client.send_transaction(transaction, fromKeypair)
+    transaction.sign(FEE_PAYER_KEYPAIR, fromKeypair)
+
+    opts = solana.rpc.types.TxOpts()
+    tx = transaction.serialize()
+    resp = client.send_raw_transaction(tx, opts)
+
+
     return resp
 
 def updateNfts(PUBLIC_KEY_STR):
@@ -241,9 +271,9 @@ def updateNfts(PUBLIC_KEY_STR):
     json.dump(addressToMint, open("./publickeyToMint.json", "w"))
     return nftPubKeys
 
-@app.route('/check/verified', methods=['GET'])
-def get_verified_pubkeys():
-    return jsonify({})
+@app.route('/settings', methods=['POST'])
+def save_settings():
+    pass
 
 @app.route('/trades/completed', methods=['GET'])
 def get_completed_trades():
@@ -268,7 +298,6 @@ def withdraw_sol():
 
     solAmount = request.form['solAmt']
     withdrawPubkey = request.form['withdrawPubkey']
-    print(solAmount)
 
     client2 = Client(getSolanaUrl())
     resp = client2.get_balance(solana.publickey.PublicKey(ownerPubkey))
@@ -278,8 +307,8 @@ def withdraw_sol():
             sendSol(ownerPubkey, withdrawPubkey, float(solAmount))
             return "success"
         except Exception as e:
-            return "failed"
-    return "failed"
+            return "Failed to send SOL"
+    return "Insufficient funds"
 
 @app.route('/search/users', methods=['GET'])
 def search_users():
@@ -823,4 +852,3 @@ def compare_orders():
         for user in userCreds:
             if user['accountid']  == userid:
                 return render_template("home.html", username=user['username'])
-
